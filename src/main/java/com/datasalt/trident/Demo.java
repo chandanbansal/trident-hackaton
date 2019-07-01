@@ -1,23 +1,23 @@
 package com.datasalt.trident;
 
+import org.apache.commons.collections.MapUtils;
+import org.apache.storm.LocalDRPC;
+import org.apache.storm.generated.StormTopology;
+import org.apache.storm.trident.TridentTopology;
+import org.apache.storm.trident.operation.Aggregator;
+import org.apache.storm.trident.operation.BaseFunction;
+import org.apache.storm.trident.operation.Filter;
+import org.apache.storm.trident.operation.TridentCollector;
+import org.apache.storm.trident.operation.TridentOperationContext;
+import org.apache.storm.trident.operation.builtin.Count;
+import org.apache.storm.trident.tuple.TridentTuple;
+import org.apache.storm.tuple.Fields;
+import org.apache.storm.tuple.Values;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.collections.MapUtils;
-
-import storm.trident.TridentTopology;
-import storm.trident.operation.Aggregator;
-import storm.trident.operation.BaseFunction;
-import storm.trident.operation.Filter;
-import storm.trident.operation.TridentCollector;
-import storm.trident.operation.TridentOperationContext;
-import storm.trident.operation.builtin.Count;
-import storm.trident.tuple.TridentTuple;
-import backtype.storm.LocalDRPC;
-import backtype.storm.generated.StormTopology;
-import backtype.storm.tuple.Fields;
-import backtype.storm.tuple.Values;
 
 /**
  * This class is not mean to be run, instead it is mean to be read. This is the guideline I followed for giving a
@@ -123,12 +123,12 @@ public class Demo {
 		// Each primitive allows us to apply either filters or functions to the stream
 		// We always have to select the input fields.
 		topology.newStream("filter", spout).each(new Fields("text", "actor"), new PereTweetsFilter())
-		    .each(new Fields("text", "actor"), new Utils.PrintFilter());
+		    .each(new Fields("text", "actor"), new TridentUtils.PrintFilter());
 
 		// Functions describe their output fields, which are always appended to the input fields.
 		topology.newStream("function", spout)
 		    .each(new Fields("text", "actor"), new UppercaseFunction(), new Fields("uppercased_text"))
-		    .each(new Fields("text", "uppercased_text"), new Utils.PrintFilter());
+		    .each(new Fields("text", "uppercased_text"), new TridentUtils.PrintFilter());
 
 		// As you see, Each operations can be chained.
 
@@ -137,13 +137,13 @@ public class Demo {
 		// This topology creates 5 spouts and 5 bolts:
 		// Let's debug that with TridentOperationContext . partitionIndex !
 		topology.newStream("parallel", spout).each(new Fields("text", "actor"), new PereTweetsFilter())
-		    .parallelismHint(5).each(new Fields("text", "actor"), new Utils.PrintFilter());
+		    .parallelismHint(5).each(new Fields("text", "actor"), new TridentUtils.PrintFilter());
 
 		// A stream can be partitioned in various ways.
 		// Let's partition it by "actor". What happens with previous example?
 		topology.newStream("parallel_and_partitioned", spout).partitionBy(new Fields("actor"))
 		    .each(new Fields("text", "actor"), new PereTweetsFilter()).parallelismHint(5)
-		    .each(new Fields("text", "actor"), new Utils.PrintFilter());
+		    .each(new Fields("text", "actor"), new TridentUtils.PrintFilter());
 
 		// Only one partition is filtering, which makes sense for the case.
 		// If we remove the partitionBy we get the previous behavior.
@@ -156,7 +156,7 @@ public class Demo {
 		// We could also choose global() - with care!
 		topology.newStream("parallel_and_partitioned", spout).parallelismHint(1).shuffle()
 		    .each(new Fields("text", "actor"), new PereTweetsFilter()).parallelismHint(5)
-		    .each(new Fields("text", "actor"), new Utils.PrintFilter());
+		    .each(new Fields("text", "actor"), new TridentUtils.PrintFilter());
 
 		// Because data is batched, we can aggregate batches for efficiency.
 		// The aggregate primitive aggregates one full batch. Useful if we want to persist the result of each batch only
@@ -164,7 +164,7 @@ public class Demo {
 		// The aggregation for each batch is executed in a random partition as can be seen:
 		topology.newStream("aggregation", spout).parallelismHint(1)
 		    .aggregate(new Fields("location"), new LocationAggregator(), new Fields("aggregated_result"))
-		    .parallelismHint(5).each(new Fields("aggregated_result"), new Utils.PrintFilter());
+		    .parallelismHint(5).each(new Fields("aggregated_result"), new TridentUtils.PrintFilter());
 
 		// The partitionAggregate on the other hand only executes the aggregator within one partition's part of the batch.
 		// Let's debug that with TridentOperationContext . partitionIndex !
@@ -174,7 +174,7 @@ public class Demo {
 		    .shuffle()
 		    .partitionAggregate(new Fields("location"), new LocationAggregator(),
 		        new Fields("aggregated_result")).parallelismHint(6)
-		    .each(new Fields("aggregated_result"), new Utils.PrintFilter());
+		    .each(new Fields("aggregated_result"), new TridentUtils.PrintFilter());
 
 		// (See what happens when we change the Spout batch size / parallelism)
 
@@ -184,7 +184,7 @@ public class Demo {
 		// We don't need to use HashMaps anymore.
 		topology.newStream("aggregation", spout).parallelismHint(1).groupBy(new Fields("location"))
 		    .aggregate(new Fields("location"), new Count(), new Fields("count")).parallelismHint(5)
-		    .each(new Fields("location", "count"), new Utils.PrintFilter());
+		    .each(new Fields("location", "count"), new TridentUtils.PrintFilter());
 
 		// EXERCISE: Use Functions and Aggregators to parallelize per-hashtag counts.
 		// Step by step: 1) Obtain and select hashtags, 2) Write the Aggregator.

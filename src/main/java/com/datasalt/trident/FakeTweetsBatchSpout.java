@@ -1,19 +1,19 @@
 package com.datasalt.trident;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.storm.Config;
+import org.apache.storm.task.TopologyContext;
+import org.apache.storm.trident.operation.TridentCollector;
+import org.apache.storm.trident.spout.IBatchSpout;
+import org.apache.storm.tuple.Fields;
+import org.apache.storm.tuple.Values;
+import org.apache.storm.utils.Utils;
+
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Map;
 import java.util.Random;
-
-import org.apache.commons.io.IOUtils;
-
-import storm.trident.operation.TridentCollector;
-import storm.trident.spout.IBatchSpout;
-import backtype.storm.Config;
-import backtype.storm.task.TopologyContext;
-import backtype.storm.tuple.Fields;
-import backtype.storm.tuple.Values;
 
 /**
  * A Spout that emits fake tweets. It calculates a random probability distribution for hashtags and actor activity. It
@@ -72,6 +72,8 @@ public class FakeTweetsBatchSpout implements IBatchSpout {
 
 	@Override
 	public void emitBatch(long batchId, TridentCollector collector) {
+		System.out.println("----------------------------------------------------------------------------------");
+		Utils.sleep(3000);
 		// emit batchSize fake tweets
 		for(int i = 0; i < batchSize; i++) {
 			collector.emit(getNextTweet());
@@ -108,7 +110,7 @@ public class FakeTweetsBatchSpout implements IBatchSpout {
 		String author = ACTORS[actorIndex];
 		String text = sentences[randomGenerator.nextInt(sentences.length)].trim() + " #"
 		    + SUBJECTS[randomIndex(subjectInterestDistribution[actorIndex], randomGenerator)];
-		return new Values(++tweetId + "", text, author, LOCATIONS[actorIndex], DATE_FORMAT.format(System
+		return new Values(++tweetId, text, author, LOCATIONS[actorIndex], DATE_FORMAT.format(System
 		    .currentTimeMillis()));
 	}
 

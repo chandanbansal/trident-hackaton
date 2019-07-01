@@ -1,20 +1,19 @@
 package com.datasalt.trident.examples;
 
+import com.datasalt.trident.FakeTweetsBatchSpout;
+import com.datasalt.trident.TridentUtils;
+import org.apache.storm.Config;
+import org.apache.storm.LocalCluster;
+import org.apache.storm.LocalDRPC;
+import org.apache.storm.generated.StormTopology;
+import org.apache.storm.trident.TridentTopology;
+import org.apache.storm.trident.operation.BaseFilter;
+import org.apache.storm.trident.operation.TridentOperationContext;
+import org.apache.storm.trident.tuple.TridentTuple;
+import org.apache.storm.tuple.Fields;
+
 import java.io.IOException;
 import java.util.Map;
-
-import storm.trident.TridentTopology;
-import storm.trident.operation.BaseFilter;
-import storm.trident.operation.TridentOperationContext;
-import storm.trident.tuple.TridentTuple;
-import backtype.storm.Config;
-import backtype.storm.LocalCluster;
-import backtype.storm.LocalDRPC;
-import backtype.storm.generated.StormTopology;
-import backtype.storm.tuple.Fields;
-
-import com.datasalt.trident.FakeTweetsBatchSpout;
-import com.datasalt.trident.Utils;
 
 /**
  * This example is useful for understanding how parallelism and partitioning works. parallelismHit() is applied down
@@ -66,7 +65,7 @@ public class ParallelismExample1 {
 				.partitionBy(new Fields("actor"))
 		    // .shuffle()
 		    .each(new Fields("actor", "text"), new PerActorTweetsFilter("dave")).parallelismHint(5)
-		    .each(new Fields("actor", "text"), new Utils.PrintFilter());
+		    .each(new Fields("actor", "text"), new TridentUtils.PrintFilter());
 
 		return topology.build();
 	}

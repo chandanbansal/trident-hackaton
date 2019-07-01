@@ -1,17 +1,16 @@
 package com.datasalt.trident.examples;
 
-import java.io.IOException;
-
-import storm.trident.TridentTopology;
-import storm.trident.operation.builtin.Count;
-import backtype.storm.Config;
-import backtype.storm.LocalCluster;
-import backtype.storm.LocalDRPC;
-import backtype.storm.generated.StormTopology;
-import backtype.storm.tuple.Fields;
-
 import com.datasalt.trident.FakeTweetsBatchSpout;
-import com.datasalt.trident.Utils;
+import com.datasalt.trident.TridentUtils;
+import org.apache.storm.Config;
+import org.apache.storm.LocalCluster;
+import org.apache.storm.LocalDRPC;
+import org.apache.storm.generated.StormTopology;
+import org.apache.storm.trident.TridentTopology;
+import org.apache.storm.trident.operation.builtin.Count;
+import org.apache.storm.tuple.Fields;
+
+import java.io.IOException;
 
 /**
  * This example illustrates the usage of groupBy. GroupBy creates a "grouped stream" which means that subsequent aggregators
@@ -32,7 +31,7 @@ public class PerLocationCounts2 {
 		topology.newStream("spout", spout)
 			.groupBy(new Fields("location"))
 			.aggregate(new Fields("location"), new Count(), new Fields("count"))
-			.each(new Fields("location", "count"), new Utils.PrintFilter());
+			.each(new Fields("location", "count"), new TridentUtils.PrintFilter());
 		
 		return topology.build();
 	}

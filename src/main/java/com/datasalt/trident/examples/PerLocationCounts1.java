@@ -1,24 +1,22 @@
 package com.datasalt.trident.examples;
 
+import com.datasalt.trident.FakeTweetsBatchSpout;
+import com.datasalt.trident.TridentUtils;
+import org.apache.commons.collections.MapUtils;
+import org.apache.storm.Config;
+import org.apache.storm.LocalCluster;
+import org.apache.storm.LocalDRPC;
+import org.apache.storm.generated.StormTopology;
+import org.apache.storm.trident.TridentTopology;
+import org.apache.storm.trident.operation.BaseAggregator;
+import org.apache.storm.trident.operation.TridentCollector;
+import org.apache.storm.trident.tuple.TridentTuple;
+import org.apache.storm.tuple.Fields;
+import org.apache.storm.tuple.Values;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.commons.collections.MapUtils;
-
-import storm.trident.TridentTopology;
-import storm.trident.operation.BaseAggregator;
-import storm.trident.operation.TridentCollector;
-import storm.trident.tuple.TridentTuple;
-import backtype.storm.Config;
-import backtype.storm.LocalCluster;
-import backtype.storm.LocalDRPC;
-import backtype.storm.generated.StormTopology;
-import backtype.storm.tuple.Fields;
-import backtype.storm.tuple.Values;
-
-import com.datasalt.trident.FakeTweetsBatchSpout;
-import com.datasalt.trident.Utils;
 
 /**
  * This example shows the usage of aggregate() method for aggregating the WHOLE Trident batch of Tuples.
@@ -59,7 +57,7 @@ public class PerLocationCounts1 {
 		TridentTopology topology = new TridentTopology();
 		topology.newStream("spout", spout)
 			.aggregate(new Fields("location"), new LocationAggregator(), new Fields("location_counts"))
-			.each(new Fields("location_counts"), new Utils.PrintFilter());
+			.each(new Fields("location_counts"), new TridentUtils.PrintFilter());
 		
 		return topology.build();
 	}
